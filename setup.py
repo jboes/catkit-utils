@@ -16,8 +16,8 @@ setuptools.setup(
     long_description=readme,
     license='GPL-3.0',
 
-    packages=['ckapi'],
-    package_dir={'ckapi': 'ckapi'},
+    packages=['ckutil'],
+    package_dir={'ckutil': 'ckutil'},
     install_requires=requirements,
     python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4',
 
