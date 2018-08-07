@@ -1,17 +1,16 @@
+from rdkit.Chem import AllChem as Chem
 from catkit import Gratoms
 import networkx as nx
 import numpy as np
-import rdkit
 import ase
 
 
 def get_graph(molecule, sanitize=True):
 
-    rdkG = rdkit.Chem.AllChem.rdchem.EditableMol(
-        rdkit.Chem.AllChem.rdchem.Mol())
+    rdkG = Chem.rdchem.EditableMol(Chem.rdchem.Mol())
 
     for j, data in molecule.nodes(data=True):
-        rdAtom = rdkit.Chem.AllChem.rdchem.Atom(
+        rdAtom = Chem.rdchem.Atom(
             ase.data.chemical_symbols[data['number']])
         if data.get('valence'):
             rdAtom.SetNumRadicalElectrons(int(data.get('valence')))
@@ -19,7 +18,7 @@ def get_graph(molecule, sanitize=True):
             rdAtom.SetNumRadicalElectrons(int(0))
         rdkG.AddAtom(rdAtom)
 
-    rdBonds = rdkit.Chem.AllChem.rdchem.BondType
+    rdBonds = Chem.rdchem.BondType
     orders = {'1': rdBonds.SINGLE, '2': rdBonds.DOUBLE, '3': rdBonds.TRIPLE}
 
     for u, v, data in molecule.edges(data=True):
@@ -32,14 +31,14 @@ def get_graph(molecule, sanitize=True):
     rdkG = rdkG.GetMol()
 
     if sanitize:
-        rdkit.Chem.AllChem.SanitizeMol(rdkG)
+        Chem.SanitizeMol(rdkG)
 
     return rdkG
 
 
 def rdkit_to_gratoms(rdkG, name=None, confid=-1):
     """TODO: conserve 3D positions if present."""
-    block = rdkit.Chem.AllChem.MolToMolBlock(rdkG, confId=confid)
+    block = Chem.MolToMolBlock(rdkG, confId=confid)
 
     positions = np.empty((rdkG.GetNumAtoms(), 3))
     n = rdkG.GetNumAtoms()
@@ -70,29 +69,29 @@ def rdkit_to_gratoms(rdkG, name=None, confid=-1):
 def plot_molecule(molecule, file_name=None):
     """Plot a molecule using RDKit."""
     rdkG = get_graph(molecule)
-    rdkG = rdkit.Chem.AllChem.RemoveHs(rdkG)
-    rdkit.Chem.Draw.MolToFile(rdkG, file_name, size=(200, 200))
+    rdkG = Chem.RemoveHs(rdkG)
+    Chem.Draw.MolToFile(rdkG, file_name, size=(200, 200))
 
 
 def get_smiles(molecule):
     """Return SMILES representation of a molecule as str."""
     rdkG = get_graph(molecule)
 
-    return rdkit.Chem.AllChem.MolToSmiles(rdkG)
+    return Chem.MolToSmiles(rdkG)
 
 
 def get_uff_coordinates(gratoms, steps=10):
     rdkG = get_graph(gratoms.graph)
-    rdkit.Chem.AllChem.EmbedMolecule(rdkG, rdkit.Chem.AllChem.ETKDG())
+    Chem.EmbedMolecule(rdkG, Chem.ETKDG())
 
     lec = 0
     if steps:
-        cids = rdkit.Chem.AllChem.EmbedMultipleConfs(rdkG, numConfs=steps)
-        rdkit.Chem.AllChem.UFFOptimizeMoleculeConfs(rdkG)
+        cids = Chem.EmbedMultipleConfs(rdkG, numConfs=steps)
+        Chem.UFFOptimizeMoleculeConfs(rdkG)
 
         energies = []
         for cid in cids:
-            ffe = rdkit.Chem.AllChem.UFFGetMoleculeForceField(
+            ffe = Chem.UFFGetMoleculeForceField(
                 rdkG, confId=cid).CalcEnergy()
             energies += [ffe]
         energies = np.array(energies)

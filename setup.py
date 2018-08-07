@@ -8,7 +8,7 @@ with open('readme.org', 'r') as f:
 
 setuptools.setup(
     name="CatKit-utils",
-    version="0.0.1",
+    version="0.0.2",
     author="Jacob Boes",
     author_email="jrboes@stanford.edu",
 
