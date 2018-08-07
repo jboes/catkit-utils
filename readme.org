@@ -1,0 +1,10 @@
+#+Title: CatKit API utilities
+#+Author: SUNCAT Method Development Team
+#+OPTIONS: toc:nil
+#+LATEX_HEADER: \setlength{\parindent}{0em}
+
+In the effort to make CatKit's testing suit and requirements more light weight, I removed some of the API features meant to interface with heavier packages.
+
+These API are still useful, but to help make CatKit more accessible to contributions from other developers, they will live separately for the foreseeable future.
+
+Any API housed here is made generally available through the [[./LICENSE][GPLv3 Licence]], but no testing of the functions is provided. Use at your own risk.
