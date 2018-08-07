@@ -7,7 +7,7 @@ with open('readme.org', 'r') as f:
     readme = f.read()
 
 setuptools.setup(
-    name="CatKit-API",
+    name="CatKit-utils",
     version="0.0.1",
     author="Jacob Boes",
     author_email="jrboes@stanford.edu",
