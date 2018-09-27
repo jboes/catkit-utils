@@ -74,9 +74,11 @@ def get_prototype_tag(atoms):
     if np.all(magmoms == magmoms[0], axis=0):
         magmoms = None
 
-    tags = []
+    images, tags = [], []
     for p in positions:
         atoms.translate(-p)
+        atoms.wrap()
+        images += [atoms.copy()]
         atoms.write('POSCAR')
 
         output = aflow_command('POSCAR', magmoms=magmoms)
@@ -84,8 +86,6 @@ def get_prototype_tag(atoms):
         sg = output['space_group_number']
         wc = output['Wyckoff_positions']
         sym = output['wyccar']['title'].split('|')[0].split()
-        num = output['wyccar']['number_each_type']
-        composition = ['{}{}'.format(s, num[i]) for i, s in enumerate(sym)]
 
         nn, nm, ns = [], [], []
         for entry in wc:
@@ -98,9 +98,12 @@ def get_prototype_tag(atoms):
                 nm += [entry['multiplicity']]
                 ns += [entry['Wyckoff_letter']]
         srt = np.lexsort([ns, nm])
-        tags += [sg + '_' + '_'.join(np.array(ns)[srt])]
+        tags += [sg + '_' + '_'.join(np.array(ns)[srt]) + '_'
+                 + '_'.join(np.array(sym)[srt])]
     os.unlink('POSCAR')
 
-    tag = '_'.join([''.join(composition), np.sort(tags)[0]])
+    selection = np.argsort(tags)[0]
+    atoms = images[selection]
+    tag = tags[selection]
 
-    return tag
+    return tag, atoms
