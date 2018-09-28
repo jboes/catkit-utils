@@ -1,3 +1,4 @@
+from catkit.gen.symmetry import get_standardized_cell
 import numpy as np
 import subprocess
 import json
@@ -66,10 +67,17 @@ def get_prototype_tag(atoms):
     tag : str
         Single string representation of a bulk structure.
     """
-    symbols = atoms.get_chemical_symbols()
-    atoms = atoms[np.argsort(symbols)]
+    atoms = atoms[np.argsort(atoms.get_chemical_symbols())]
+    atoms = get_standardized_cell(atoms, primitive=True)
 
-    positions = atoms.positions
+    symbols = np.array(atoms.get_chemical_symbols())
+    unique_symbols, counts = np.unique(
+        symbols, return_counts=True)
+
+    min_symbol = unique_symbols[np.argmin(counts)]
+    min_indices = np.where(symbols == min_symbol)[0]
+
+    positions = atoms.positions[min_indices]
     magmoms = atoms.get_initial_magnetic_moments()
     if np.all(magmoms == magmoms[0], axis=0):
         magmoms = None
@@ -79,9 +87,9 @@ def get_prototype_tag(atoms):
         atoms.translate(-p)
         atoms.wrap()
         images += [atoms.copy()]
-        atoms.write('POSCAR')
+        atoms.write('POSCAR.tmp')
 
-        output = aflow_command('POSCAR', magmoms=magmoms)
+        output = aflow_command('POSCAR.tmp', magmoms=magmoms)
 
         sg = output['space_group_number']
         wc = output['Wyckoff_positions']
@@ -100,10 +108,11 @@ def get_prototype_tag(atoms):
         srt = np.lexsort([ns, nm])
         tags += [sg + '_' + '_'.join(np.array(ns)[srt]) + '_'
                  + '_'.join(np.array(sym)[srt])]
-    os.unlink('POSCAR')
+    os.unlink('POSCAR.tmp')
 
     selection = np.argsort(tags)[0]
     atoms = images[selection]
     tag = tags[selection]
+    atoms.info['prototype_tag'] = tag
 
     return tag, atoms
