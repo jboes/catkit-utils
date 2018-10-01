@@ -41,7 +41,7 @@ def aflow_command(input_file, cmd='--sgdata', magmoms=None, extra=''):
     return output
 
 
-def get_prototype_tag(atoms):
+def get_prototype_tag(atoms, tol=1e-3):
     """Return a prototype tag for a given bulk structure from AFLOW-SYM.
     This will automatically pass magnetic moments from the initial state of
     an atoms object.
@@ -61,6 +61,8 @@ def get_prototype_tag(atoms):
     -----------
     atoms : Atoms object
         Structure to determine the prototype tag of.
+    tol : float
+        Absolute tolerance for float point precision errors.
 
     Returns:
     ---------
@@ -68,7 +70,7 @@ def get_prototype_tag(atoms):
         Single string representation of a bulk structure.
     """
     atoms = atoms[np.argsort(atoms.get_chemical_symbols())]
-    atoms = get_standardized_cell(atoms, primitive=True)
+    atoms = get_standardized_cell(atoms, primitive=True, tol=tol)
 
     symbols = np.array(atoms.get_chemical_symbols())
     unique_symbols, counts = np.unique(
@@ -106,12 +108,12 @@ def get_prototype_tag(atoms):
                 nm += [entry['multiplicity']]
                 ns += [entry['Wyckoff_letter']]
         srt = np.lexsort([ns, nm])
-        tags += [sg + '_' + '_'.join(np.array(ns)[srt]) + '_'
-                 + '_'.join(np.array(sym)[srt])]
+        tags += [sg + '_' + '.'.join(np.array(ns)[srt]) + '_'
+                 + '.'.join(np.array(sym)[srt])]
     os.unlink('POSCAR.tmp')
 
     selection = np.argsort(tags)[0]
-    atoms = images[selection]
+    atoms = images[selection][np.lexsort(atoms.positions.T)]
     tag = tags[selection]
     atoms.info['prototype_tag'] = tag
 
